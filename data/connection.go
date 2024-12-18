@@ -427,11 +427,14 @@ func (c *PostgresSQL) CreateCoffee(coffee model.Coffee) (model.Coffee, error) {
 	m := model.Coffee{}
 
 	rows, err := c.db.NamedQuery(
-		`INSERT INTO coffees (name, teaser, description, price, image, created_at, updated_at) 
-		VALUES(:name, :teaser, :description, :price, :image, now(), now()) 
+		`INSERT INTO coffees (name, teaser, collection, origin, color, description, price, image, created_at, updated_at) 
+		VALUES(:name, :teaser, :collection,:origin, :color, :description, :price, :image, now(), now()) 
 		RETURNING id;`, map[string]interface{}{
 			"name":        coffee.Name,
 			"teaser":      coffee.Teaser,
+			"collection":  coffee.Collection,
+			"origin":      coffee.Origin,
+			"color":       coffee.Color,
 			"description": coffee.Description,
 			"price":       coffee.Price,
 			"image":       coffee.Image,
@@ -443,12 +446,13 @@ func (c *PostgresSQL) CreateCoffee(coffee model.Coffee) (model.Coffee, error) {
 
 	if rows.Next() {
 		err := rows.StructScan(&m)
+		coffee.ID = m.ID
 		if err != nil {
 			return m, err
 		}
 	}
 
-	return m, nil
+	return coffee, nil
 }
 
 // UpsertCoffeeIngredient upserts a new coffee ingredient
